@@ -105,7 +105,22 @@ int hasLambda(int prod){
     return 0;
 }
 
-char *getFirstSet(char c){}
+int hasLambdaInSet(char *set){
+    int i;
+    for (i = 0; i < strlen(set); i++)
+        if (set[i] == 'e') return 1;
+    return 0;
+}
+
+char *getFirstSet(char c){
+    int i;
+    for (i = 0; i < numFirstSets; i++){
+        if (firstSet[i].head == c){
+            return firstSet[i].rightSide;
+        }
+        
+    }
+}
 
 void append(char *set, char token){
     int i;
@@ -120,7 +135,13 @@ void append(char *set, char token){
     strncat(set, aux, strlen(aux));
 }
 
-void unionSet(){}
+void unionSet(char *setA, char *setB){
+    int i;
+    for (i = 0; i < strlen(setB); i++){
+        if (setB[i] != 'e') 
+            append(setA, setB[i]);
+    }
+}
 
 void createFirst(char new){
     firstSet[numFirstSets].head = new;
@@ -182,13 +203,20 @@ void addToFirst(int ruleIndex, char token){
 }
 
 void first(int ruleIndex){
+    int i;
     if (hasLambda(ruleIndex)){
         addToFirst(ruleIndex, 'e');
+    } else {
+        for (i = 0; i < strlen(rules[ruleIndex].rightSide); i++) {
+            char *Y = getFirstSet(rules[ruleIndex].rightSide[i]);
+            unionSet(getFirstSet(rules[ruleIndex].head), Y);
+            if (!hasLambdaInSet(Y)) break;
+        }
     }
 }
 
 int main(int argc, char *argv[]){
-    int i;    
+    int i, j;    
 
     newRules();
 
@@ -201,9 +229,10 @@ int main(int argc, char *argv[]){
     
     /*printGrammar();*/
 
-    for (i = 0; i < numRules; i++){
-        first(i);
-
+    for (j = 0; j < 100; j++){
+        for (i = 0; i < numRules; i++){
+            first(i);
+        }
     }
     /*addToFirst(0, 'k');*/
 
