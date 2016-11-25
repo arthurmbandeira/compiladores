@@ -2,13 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define GRSIZE 100
+
 #define ARQUIVO 1
 
 #define VAZIO 'e'
 #define INICIAL 'S'
 #define FINAL '$'
 
-int numRules;
+int numRules, numChars;
 char *firstSet;
 
 // Structs
@@ -18,17 +20,57 @@ struct SRules{
 };
 typedef struct SRules Rules;
 
-Rules *newRules(n){
-    Rules *rules = malloc(n*sizeof(Rules));
-    rules->head = ' ';
-    rules->production = malloc(sizeof(Rules));
-    return rules;
+Rules *rules;
+
+void newRules(){
+    int i;
+    rules = malloc(GRSIZE * sizeof(Rules));
+
+    for (i = 0; i < GRSIZE; ++i){
+        rules->head = 0;
+        rules->production = NULL;
+    }
+}
+
+void treatGrammar(char *in){
+
+    char head;
+    char *line = NULL;
+    char *prod = NULL;
+
+    while((line = strsep(&in, "\n")) != NULL){
+        head = line[0];
+        line = &line[2];
+
+        while((prod = strsep(&line, "|")) != NULL){            
+            rules[numRules].head = head;
+            rules[numRules].production = malloc(100 * sizeof(char));
+            memset(rules[numRules].production, '\0', 100);
+
+            strcpy(rules[numRules].production, prod);
+            numRules++;
+        }
+    }
+}
+
+void printGrammar(){
+    int i;
+
+    for (i = 0; i < numRules; i++){
+        printf("%c -> %s\n", rules[i].head, rules[i].production);
+    }
 }
 
 // File & Grammar Related
-void readFile(char *out, char *path){
-    char c;
-    char *aux = malloc(sizeof(char));
+void readFile(char *path){
+    char c, head;
+
+    //char *buffer = (char *)malloc(1024*sizeof(char));
+    char aux[2];
+    char buffer[1024];
+
+    memset(aux, '\0', sizeof(aux));
+    memset(buffer, '\0', sizeof(buffer));
 
     FILE *file;
 
@@ -41,43 +83,15 @@ void readFile(char *out, char *path){
         while ((c = fgetc(file)) != EOF){
             if (c != ' '){
                 snprintf(aux, sizeof(aux), "%c", c);
-                strncat(out, aux, sizeof(aux));
+                strncat(buffer, aux, strlen(aux));
             }
+            numChars++;
         }
     }
 
     fclose(file);
-    free(aux);
-}
-
-void treatGrammar(char *in, Rules *rule){
-    int i;
-
-    char head;
-    char *line = NULL;
-    char *prod = NULL;
-
-    while((line = strsep(&in, "\n")) != NULL){
-        head = line[0];
-        line = &line[2];
-
-        while((prod = strsep(&line, "|")) != NULL){            
-            rule[numRules].head = head;
-            rule[numRules].production = prod;
-            numRules++;
-        }
-    }
-
-    free(line);
-    free(prod);
-}
-
-void printGrammar(Rules *grammar){
-    int i;
-
-    for (i = 0; i < numRules; i++){
-        printf("%c -> %s\n", grammar[i].head, grammar[i].production);
-    }
+    
+    treatGrammar(buffer);
 }
 
 int isTerminal(char t){
@@ -100,17 +114,16 @@ void first(char c){
 }
 
 int main(int argc, char *argv[]){
-    int i;
+    int i;    
 
-    char *in = malloc(sizeof(char));
-    readFile(in, argv[ARQUIVO]);
+    newRules();
+    readFile(argv[ARQUIVO]);
 
-    Rules *rules = newRules(numRules);
+    printGrammar();
 
-    treatGrammar(in, rules);
-    printGrammar(rules);
-    
-    free(in);
+    /*treatGrammar(in, rules);
+    printGrammar(rules);*/
+
     /*free(rules);*/
 
     return 0;

@@ -1,7 +1,7 @@
-E - TR
-R - +TR|-TR|E
-T - KY
-Y - *KY|/KY|E
-K - FL
-L - ^FL|E
-F - (E)|n|v
+E-TR
+R-+TR|-TR|E
+T-KY
+Y-*KY|/KY|E
+K-FL
+L-^FL|E
+F-(E)|n|v
