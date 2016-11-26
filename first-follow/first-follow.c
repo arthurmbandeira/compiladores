@@ -1,15 +1,24 @@
+/*
+Arthur Manuel Bandeira
+Carlos Henrique Paisca
+Gabriel Belini
+Juliano Donini
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define ARQUIVO 1
 #define GRSIZE 100
+#define ERROR -1
 
-#define VAZIO 'e'
 #define INICIAL 'S'
 #define FINAL '$'
 
-int numRules, numChars, numFirstSets, numFollowSets;
+int numRules, numChars, numFirstSets, numFollowSets, numT, numNT;
+
+int **table;
 
 char *ravelSet;
 
@@ -60,7 +69,7 @@ void printGrammar(){
     int i;
 
     for (i = 0; i < numRules; i++){
-        printf("%c -> %s\n", rules[i].head, rules[i].rightSide);
+        printf("%d: %c -> %s\n", i, rules[i].head, rules[i].rightSide);
     }
 }
 
@@ -95,6 +104,7 @@ void readFile(char *path){
     treatGrammar(buffer);
 }
 
+// Auxiliar Functions
 int isTerminal(char t){
     return !isupper(t);
 }
@@ -112,22 +122,11 @@ int hasLambdaInSet(char *set){
     return 0;
 }
 
-char *getFirstSet(char c){
+int hasFinalInSet(char *set){
     int i;
-    for (i = 0; i < numFirstSets; i++){
-        if (firstSet[i].head == c){
-            return firstSet[i].rightSide;
-        }
-    }
-}
-
-char *getFollowSet(char c){
-    int i;
-    for (i = 0; i < numFollowSets; i++){
-        if (followSet[i].head == c){
-            return followSet[i].rightSide;
-        }
-    }
+    for (i = 0; i < strlen(set); i++)
+        if (set[i] == FINAL) return 1;
+    return 0;
 }
 
 void append(char *set, char token){
@@ -157,23 +156,6 @@ void unionSetLambda(char *setA, char *setB){
         append(setA, setB[i]);
 }
 
-void createFirst(char new){
-    firstSet[numFirstSets].head = new;
-    firstSet[numFirstSets].rightSide = malloc(GRSIZE * sizeof(char));
-    memset(firstSet[numFirstSets].rightSide, '\0', GRSIZE);
-    if (isTerminal(new)){
-        append(firstSet[numFirstSets].rightSide, new);
-    }
-    numFirstSets++;
-}
-
-void createFollow(char new){
-    followSet[numFollowSets].head = new;
-    followSet[numFollowSets].rightSide = malloc(GRSIZE * sizeof(char));
-    memset(followSet[numFollowSets].rightSide, '\0', GRSIZE);
-    numFollowSets++;
-}
-
 void ravelTerminals(char *right){
     int i;
     for (i = 0; i < strlen(right); i++){
@@ -187,6 +169,10 @@ void ravelNotTerminals(char left){
     append(ravelSet, left);
 }
 
+void addFinalToRavel(){
+    append(ravelSet, FINAL);
+}
+
 void createRavelSet(){
     int i;
     ravelSet = malloc(GRSIZE * sizeof(char));
@@ -197,11 +183,93 @@ void createRavelSet(){
     }
 }
 
+void getNumTokens(){
+    int i;
+    for (i = 0; i < strlen(ravelSet); i++){
+        if (isTerminal(ravelSet[i])) numT++;
+        else numNT++;
+    }
+}
+
+int getIndexT(char c){
+    int i, index = 0;
+    for (i = 0; i < strlen(ravelSet); i++){
+        if (isTerminal(ravelSet[i])){
+            if (ravelSet[i] == c){
+                return index;
+            } else {
+                index++;
+            }
+        }
+    }
+}
+
+int getIndexNT(char c){
+    int i, index = 0;
+    for (i = 0; i < strlen(ravelSet); i++){
+        if (!isTerminal(ravelSet[i])){
+            if (ravelSet[i] == c){
+                return index;
+            } else {
+                index++;
+            }
+        }
+    }
+}
+
+// First functions
+
+char *getFirstSet(char c){
+    int i;
+    for (i = 0; i < numFirstSets; i++){
+        if (firstSet[i].head == c){
+            return firstSet[i].rightSide;
+        }
+    }
+}
+
+void createFirst(char new){
+    firstSet[numFirstSets].head = new;
+    firstSet[numFirstSets].rightSide = malloc(GRSIZE * sizeof(char));
+    memset(firstSet[numFirstSets].rightSide, '\0', GRSIZE);
+    if (isTerminal(new)){
+        append(firstSet[numFirstSets].rightSide, new);
+    }
+    numFirstSets++;
+}
+
 void createFirstSets(){
     int i;
     firstSet = malloc(GRSIZE * sizeof(Rules));
     for (i = 0; i < strlen(ravelSet); i++)
         createFirst(ravelSet[i]);
+}
+
+void addToFirst(int ruleIndex, char token){
+    int i;
+    for (i = 0; i < numFirstSets; i++){
+        if (firstSet[i].head == rules[ruleIndex].head){
+            append(firstSet[i].rightSide, token);
+        }
+    }
+}
+
+// Follow Functions
+
+char *getFollowSet(char c){
+    int i;
+    for (i = 0; i < numFollowSets; i++){
+        if (followSet[i].head == c){
+            return followSet[i].rightSide;
+        }
+    }
+}
+
+void createFollow(char new){
+    followSet[numFollowSets].head = new;
+    followSet[numFollowSets].rightSide = malloc(GRSIZE * sizeof(char));
+    memset(followSet[numFollowSets].rightSide, '\0', GRSIZE);
+    numFollowSets++;
 }
 
 void createFollowSets(){
@@ -214,20 +282,72 @@ void createFollowSets(){
     }
 }
 
-void addToFirst(int ruleIndex, char token){
-    int i;
-    for (i = 0; i < numFirstSets; i++){
-        if (firstSet[i].head == rules[ruleIndex].head){
-            append(firstSet[i].rightSide, token);
-        }
-    }
-}
-
 void addToFollow(int ruleIndex, char token){
     int i;
     for (i = 0; i < numFollowSets; i++){
         if (followSet[i].head == rules[ruleIndex].head){
             append(followSet[i].rightSide, token);
+        }
+    }
+}
+
+// Table Functions
+
+void createTable(){
+    int i, j;
+    getNumTokens(ravelSet);
+    table = malloc(numNT * sizeof(char *));
+    for (i = 0; i < numNT; i++){
+        table[i] = malloc(numT * sizeof(char *));
+        for (j = 0; j < numT; j++){
+            table[i][j] = ERROR;
+        }
+    }
+}
+
+void printTable(){
+    int i, j, k;
+
+    printf("Table\n");
+    for (i = 0; i < strlen(ravelSet); i++){
+        if (isTerminal(ravelSet[i])){
+            printf("%-2c ", ravelSet[i]);
+        }
+    }
+    printf("\n");
+    for (i = 0; i < numNT; i++){
+        for (j = 0; j < numT; j++){
+            if (table[i][j] == ERROR){
+                printf("%-2c ", 'E');
+            } else {
+                printf("%-2d ", table[i][j]);
+            }
+        }
+        printf("\n");
+    }
+}
+
+void parseTable(){
+    int i, j;
+    for (i = 0; i < numRules; i++){
+        char *firstS = getFirstSet(rules[i].rightSide[0]);
+        for (j = 0; j < strlen(firstS); j++){
+            int x = getIndexNT(rules[i].head);
+            int y = getIndexT(firstS[j]);
+            table[x][y] = i;
+        }
+        if (hasLambdaInSet(firstS)){
+            char *followS = getFollowSet(rules[i].head);
+            for (j = 0; j < strlen(followS); j++){
+                int x = getIndexNT(rules[i].head);
+                int y = getIndexT(followS[j]);
+                table[x][y] = i;
+            }
+            if (hasFinalInSet(followS)){
+                int x = getIndexNT(rules[i].head);
+                int y = getIndexT(FINAL);
+                table[x][y] = i;   
+            }
         }
     }
 }
@@ -275,9 +395,15 @@ int main(int argc, char *argv[]){
 
     readFile(argv[ARQUIVO]);
 
+    printf("GRAMMAR\n");
+
+    printGrammar();
+
     createRavelSet();
-    printf("ravel set: %s\n", ravelSet);
+
     printf("\n");
+
+    printf("FIRST FOLLOW\n");
 
     createFirstSets();
 
@@ -287,7 +413,6 @@ int main(int argc, char *argv[]){
         }
     }
     printf("\n");
-    /*addToFirst(0, 'k');*/
 
     for (i = 0; i < numFirstSets; i++){
         printf("first sets: %c -> %s\n", firstSet[i].head, firstSet[i].rightSide);
@@ -307,10 +432,15 @@ int main(int argc, char *argv[]){
         printf("follow sets: %c -> %s\n", followSet[i].head, followSet[i].rightSide);
     }
 
-    
+    printf("\n");
 
-    /*treatGrammar(in, rules);
-    printGrammar(rules);*/
+    addFinalToRavel();
+
+    createTable();
+
+    parseTable();
+
+    printTable();
 
     /*free(rules);*/
 
