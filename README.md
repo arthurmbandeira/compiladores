@@ -1,4 +1,4 @@
 # Compiladores
-Repositório criado para projetos de disciplina de Compiladores.
+Repositório criado para projetos da disciplina de Compiladores.
 
 ### Arthur Manuel Bandeira
