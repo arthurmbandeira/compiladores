@@ -5,9 +5,12 @@ As funções First e Follow associadas à uma gramática auxiliam na criação d
 
 ## Execução
 Para executar o código:
-''' $ gcc first-follow.c -o ff '''
+`
+$ gcc first-follow.c -o ff 
+`
 
 E então, selecionar algum arquivo da pasta grammars:
-''' $./ff grammars/g1.txt '''
-
+`
+$./ff grammars/g1.txt 
+`
 ### Arthur Manuel Bandeira
