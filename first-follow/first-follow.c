@@ -1,10 +1,3 @@
-/*
-Arthur Manuel Bandeira
-Carlos Henrique Paisca
-Gabriel Belini
-Juliano Donini
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +15,7 @@ int **table;
 
 char *ravelSet;
 
-// Structs
+// Struct & Struct Related Function
 struct SRules{
     char head;
     char *rightSide;
@@ -308,7 +301,7 @@ void createTable(){
 void printTable(){
     int i, j, k;
 
-    printf("Table\n");
+    printf("TABLE\n");
     for (i = 0; i < strlen(ravelSet); i++){
         if (isTerminal(ravelSet[i])){
             printf("%-2c ", ravelSet[i]);
@@ -352,6 +345,8 @@ void parseTable(){
     }
 }
 
+// First
+
 void first(int ruleIndex){
     int i;
     if (hasLambda(ruleIndex)){
@@ -364,6 +359,8 @@ void first(int ruleIndex){
         }
     }
 }
+
+// Follow
 
 void follow(int ruleIndex){
     int i, j;
@@ -403,7 +400,7 @@ int main(int argc, char *argv[]){
 
     printf("\n");
 
-    printf("FIRST FOLLOW\n");
+    printf("FIRST & FOLLOW SETS\n");
 
     createFirstSets();
 
@@ -412,10 +409,9 @@ int main(int argc, char *argv[]){
             first(j);
         }
     }
-    printf("\n");
 
     for (i = 0; i < numFirstSets; i++){
-        printf("first sets: %c -> %s\n", firstSet[i].head, firstSet[i].rightSide);
+        printf("first: %c -> %s\n", firstSet[i].head, firstSet[i].rightSide);
     }
 
     printf("\n");
@@ -429,7 +425,7 @@ int main(int argc, char *argv[]){
     }
 
     for (i = 0; i < numFollowSets; i++){
-        printf("follow sets: %c -> %s\n", followSet[i].head, followSet[i].rightSide);
+        printf("follow: %c -> %s\n", followSet[i].head, followSet[i].rightSide);
     }
 
     printf("\n");
@@ -441,8 +437,6 @@ int main(int argc, char *argv[]){
     parseTable();
 
     printTable();
-
-    /*free(rules);*/
 
     return 0;
 }
