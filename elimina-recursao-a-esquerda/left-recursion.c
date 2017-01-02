@@ -11,7 +11,7 @@
 
 int numRules, numChars, numT, numNT;
 
-char *ravelSet;
+char *ravelSet, *ravelNonTSet;
 
 // Struct & Struct Related Function
 struct SRules{
@@ -154,7 +154,7 @@ void ravelTerminals(char *right){
     }
 }
 
-void ravelNotTerminals(char left){
+void ravelNTSet(char left){
     append(ravelSet, left);
 }
 
@@ -168,8 +168,16 @@ void createRavelSet(){
     memset(ravelSet, '\0', GRSIZE);
     for (i = 0; i < numRules; i++){
         ravelTerminals(rules[i].rightSide);
-        ravelNotTerminals(rules[i].head);
+        ravelNTSet(rules[i].head);
     }
+}
+
+void createNTRavelSet(){
+    int i;
+    ravelNonTSet = malloc(GRSIZE * sizeof(char));
+    memset(ravelNonTSet, '\0', GRSIZE);
+    for (i = 0; i < numRules; i++)
+        append(ravelNonTSet, rules[i].head);
 }
 
 void getNumTokens(){
@@ -206,6 +214,19 @@ int getIndexNT(char c){
     }
 }
 
+// Eliminate Left Recursion
+
+void removeLeftRecursion(){
+    int i, j;
+    createNTRavelSet();
+    for (i = 0; i < strlen(ravelNonTSet); i++){
+        for (j = 0; j < i; j++){
+            printf("j: %d\n", j);
+        }
+        printf("i: %d\n", i);
+    }
+}
+
 int main(int argc, char *argv[]){
     int i, j;    
 
@@ -217,7 +238,14 @@ int main(int argc, char *argv[]){
 
     printGrammar();
 
-    createRavelSet();
+    removeLeftRecursion();
+
+    printf("\n");
+
+    for (i = 0; i < strlen(ravelNonTSet); i++){
+        printf("%c ", ravelNonTSet[i]);
+    }
+    printf("\n");
 
     printf("\n");
 
