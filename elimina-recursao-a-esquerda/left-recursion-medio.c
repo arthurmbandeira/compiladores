@@ -29,6 +29,25 @@ typedef struct Queue{
     int size;
 } Queue;
 
+/*struct SRules{
+    char head;
+    char *rightSide;
+};
+typedef struct SRules Rules;*/
+
+/*Elem *rules;
+
+void newRules(){
+    int i;
+    rules = malloc(GRSIZE * sizeof(Rules));
+
+    for (i = 0; i < GRSIZE; ++i){
+        rules->head = 0;
+        rules->prod = NULL;
+        rules->next = NULL;
+    }
+}*/
+
 Elem *newElem(char head, char *prod){
     Elem *elem = malloc(sizeof(Elem));
     elem->head = head;
@@ -193,6 +212,12 @@ int isTerminal(char t){
     return !isupper(t);
 }
 
+/*int hasLambda(int prod){
+    if (strcmp(rules[prod].rightSide, "e") == 0)
+        return 1;
+    return 0;
+}*/
+
 int hasLambdaInSet(char *set){
     int i;
     for (i = 0; i < strlen(set); i++)
@@ -220,8 +245,123 @@ void append(char *set, char token){
     strncat(set, aux, strlen(aux));
 }
 
+void unionSet(char *setA, char *setB){
+    int i;
+    for (i = 0; i < strlen(setB); i++){
+        if (setB[i] != 'e') 
+            append(setA, setB[i]);
+    }
+}
+
+void unionSetLambda(char *setA, char *setB){
+    int i;
+    for (i = 0; i < strlen(setB); i++)
+        append(setA, setB[i]);
+}
+
+void ravelTerminals(char *right){
+    int i;
+    for (i = 0; i < strlen(right); i++){
+        if (isTerminal(right[i])){
+            append(ravelSet, right[i]);
+        }
+    }
+}
+
+void ravelNTSet(char left){
+    append(ravelSet, left);
+}
+
+void addFinalToRavel(){
+    append(ravelSet, FINAL);
+}
+
+/*void createRavelSet(){
+    int i;
+    ravelSet = malloc(GRSIZE * sizeof(char));
+    memset(ravelSet, '\0', GRSIZE);
+    for (i = 0; i < numRules; i++){
+        ravelTerminals(rules[i].rightSide);
+        ravelNTSet(rules[i].head);
+    }
+}*/
+
+/*void createNTRavelSet(){
+    int i;
+    ravelNonTSet = malloc(GRSIZE * sizeof(char));
+    memset(ravelNonTSet, '\0', GRSIZE);
+    for (i = 0; i < numRules; i++)
+        append(ravelNonTSet, rules[i].head);
+}*/
+
+void getNumTokens(){
+    int i;
+    for (i = 0; i < strlen(ravelSet); i++){
+        if (isTerminal(ravelSet[i])) numT++;
+        else numNT++;
+    }
+}
+
+int getIndexT(char c){
+    int i, index = 0;
+    for (i = 0; i < strlen(ravelSet); i++){
+        if (isTerminal(ravelSet[i])){
+            if (ravelSet[i] == c){
+                return index;
+            } else {
+                index++;
+            }
+        }
+    }
+}
+
+int getIndexNT(char c){
+    int i, index = 0;
+    for (i = 0; i < strlen(ravelSet); i++){
+        if (!isTerminal(ravelSet[i])){
+            if (ravelSet[i] == c){
+                return index;
+            } else {
+                index++;
+            }
+        }
+    }
+}
+
+/*void removeImmediate(){
+
+}*/
+
+Queue *findGammas(Queue *grammar, Queue *gamma, Elem *i, Elem *j){
+    Elem *e = grammar->begin;
+
+    while (e != NULL){
+        if (e->prod == i->prod){
+            /* code */
+        }
+    }
+}
+
+void replaceProductions(){}
+
+// Eliminate Left Recursion
+
+void removeLeftRecursion(Queue *grammar, Queue *order){
+    Elem *i, *j = order->begin;
+    Queue *gamma = newQueue();
+
+    while (i != NULL){
+        while (j != i){
+            findGammas(grammar, gamma, i, j);
+            /*replaceProductions();*/
+        }
+    }
+}
+
 int main(int argc, char *argv[]){
-    int i, j;
+    int i, j;    
+
+    /*newRules();*/
 
     Queue *grammar = newQueue();
     Queue *order = newQueue();
@@ -236,6 +376,28 @@ int main(int argc, char *argv[]){
     orderQueue(order, grammar);
     printOrder(order);
     printf("\n");
+
+    removeLeftRecursion(grammar, order);
+
+    /*createNTRavelSet();*/
+
+    /*for (i = 0; i < strlen(ravelNonTSet); i++){*/
+        /*for (j = 0; j < i; j++){*/
+            /*printf("j: %d\n", j);*/
+            /*removeLeftRecursion();*/
+        /*}*/
+        /*printf("i: %d\n", i);*/
+        /*removeImmediate();*/
+    /*}*/
+
+    printf("\n");
+
+    /*for (i = 0; i < strlen(ravelNonTSet); i++){
+        printf("%c ", ravelNonTSet[i]);
+    }*/
+    /*printf("\n");*/
+
+    /*printf("\n");*/
 
     return 0;
 }
