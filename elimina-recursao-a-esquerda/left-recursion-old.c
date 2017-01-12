@@ -29,13 +29,13 @@ typedef struct Queue{
     int size;
 } Queue;
 
-/*struct SRules{
+struct SRules{
     char head;
     char *rightSide;
 };
-typedef struct SRules Rules;*/
+typedef struct SRules Rules;
 
-/*Elem *rules;
+Rules *rules;
 
 void newRules(){
     int i;
@@ -43,10 +43,9 @@ void newRules(){
 
     for (i = 0; i < GRSIZE; ++i){
         rules->head = 0;
-        rules->prod = NULL;
-        rules->next = NULL;
+        rules->rightSide = NULL;
     }
-}*/
+}
 
 Elem *newElem(char head, char *prod){
     Elem *elem = malloc(sizeof(Elem));
@@ -81,75 +80,43 @@ Elem *getElem(char head, Queue *Q){
     return aux;
 }
 
-void insertElem(char head, char *prod, Queue *Q){
-    Elem *e = newElem(head, prod);
-
-    if (emptyQueue(Q)){
-        Q->begin = e;
-        Q->end = e;
-    } else {
-        Q->end->next = e;
-        Q->end = e;
-    }
-    Q->size++;
-}
-
-int existsHeadInQueue(char x, Queue *Q){
-    Elem *e = Q->begin;
-    while (e != NULL){
-        if (e->head == x) return 1;
-        e = e->next;
-    }
-    return 0;
-}
-
-void printElem(Elem *elem){
+void printElem(Elem *Q){
     Elem *aux;
-    for (aux = elem; aux != NULL; aux = aux->next)
+    for (aux = Q; aux != NULL; aux = aux->next)
         printf("%c - %s\n", aux->head, aux->prod);
 }
 
-void orderQueue(Queue *order, Queue *grammar){
-    Elem *e = grammar->begin;
-    while(e != NULL){
-        if (!existsHeadInQueue(e->head, order))
-            insertElem(e->head, NULL, order);
-        e = e->next;
-    }
-}
-
 // File & Grammar Related
-void treatGrammar(char *in, Queue *grammar){
+void treatGrammar(char *in){
+
     char head;
     char *line = NULL;
     char *prod = NULL;
-
-    char *newProd = NULL;
 
     while((line = strsep(&in, "\n")) != NULL){
         head = line[0];
         line = &line[2];
 
-        while((prod = strsep(&line, "|")) != NULL){
-            newProd = malloc(GRSIZE * sizeof(char));
-            memset(newProd, '\0', 100);
-            strcpy(newProd, prod);
+        while((prod = strsep(&line, "|")) != NULL){            
+            rules[numRules].head = head;
+            rules[numRules].rightSide = malloc(100 * sizeof(char));
+            memset(rules[numRules].rightSide, '\0', 100);
 
-            insertElem(head, prod, grammar);
-
+            strcpy(rules[numRules].rightSide, prod);
+            numRules++;
         }
     }
 }
 
-void printGrammar(Queue *grammar){
-    Elem *e = grammar->begin;
-    while (e != NULL){
-        printf("%c -> %s\n", e->head, e->prod);
-        e = e->next;
+void printGrammar(){
+    int i;
+
+    for (i = 0; i < numRules; i++){
+        printf("%d: %c -> %s\n", i, rules[i].head, rules[i].rightSide);
     }
 }
 
-void readFile(char *path, Queue *Q){
+void readFile(char *path){
     char c, head;
 
     char aux[2];
@@ -177,7 +144,7 @@ void readFile(char *path, Queue *Q){
 
     fclose(file);
     
-    treatGrammar(buffer, Q);
+    treatGrammar(buffer);
 }
 
 // Auxiliar Functions
@@ -185,11 +152,11 @@ int isTerminal(char t){
     return !isupper(t);
 }
 
-/*int hasLambda(int prod){
+int hasLambda(int prod){
     if (strcmp(rules[prod].rightSide, "e") == 0)
         return 1;
     return 0;
-}*/
+}
 
 int hasLambdaInSet(char *set){
     int i;
@@ -249,7 +216,7 @@ void addFinalToRavel(){
     append(ravelSet, FINAL);
 }
 
-/*void createRavelSet(){
+void createRavelSet(){
     int i;
     ravelSet = malloc(GRSIZE * sizeof(char));
     memset(ravelSet, '\0', GRSIZE);
@@ -257,15 +224,15 @@ void addFinalToRavel(){
         ravelTerminals(rules[i].rightSide);
         ravelNTSet(rules[i].head);
     }
-}*/
+}
 
-/*void createNTRavelSet(){
+void createNTRavelSet(){
     int i;
     ravelNonTSet = malloc(GRSIZE * sizeof(char));
     memset(ravelNonTSet, '\0', GRSIZE);
     for (i = 0; i < numRules; i++)
         append(ravelNonTSet, rules[i].head);
-}*/
+}
 
 void getNumTokens(){
     int i;
@@ -314,49 +281,33 @@ void removeLeftRecursion(){
 int main(int argc, char *argv[]){
     int i, j;    
 
-    /*newRules();*/
+    newRules();
 
-    Queue *grammar = newQueue();
-
-    Queue *order = newQueue();
-
-    readFile(argv[ARQUIVO], grammar);
+    readFile(argv[ARQUIVO]);
 
     printf("GRAMMAR\n");
 
-    printGrammar(grammar);
+    printGrammar();
 
-    orderQueue(order, grammar);
+    createNTRavelSet();
 
-    printf("ORDER\n");
-
-    printGrammar(order);
-
-    printf("\n");
-
-    printf("%d\n", order->size);
-
-
-
-    /*createNTRavelSet();*/
-
-    /*for (i = 0; i < strlen(ravelNonTSet); i++){*/
-        /*for (j = 0; j < i; j++){*/
+    for (i = 0; i < strlen(ravelNonTSet); i++){
+        for (j = 0; j < i; j++){
             /*printf("j: %d\n", j);*/
             /*removeLeftRecursion();*/
-        /*}*/
+        }
         /*printf("i: %d\n", i);*/
         /*removeImmediate();*/
-    /*}*/
+    }
 
     printf("\n");
 
-    /*for (i = 0; i < strlen(ravelNonTSet); i++){
+    for (i = 0; i < strlen(ravelNonTSet); i++){
         printf("%c ", ravelNonTSet[i]);
-    }*/
-    /*printf("\n");*/
+    }
+    printf("\n");
 
-    /*printf("\n");*/
+    printf("\n");
 
     return 0;
 }
